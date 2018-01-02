@@ -8,6 +8,7 @@ import pickle
 import sklearn as sk
 import getdata
 from getdata import getxy
+from Trusc import get_truScore
 import sys
 
 
@@ -72,7 +73,7 @@ optimizer = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss)
 
 batch_size = 32
 
-num_epochs = 10
+num_epochs = 10 #10
 delta = 0.5
 sumfsc = 0.0
 maxfs = 0.0
@@ -124,6 +125,7 @@ with tf.Session() as sess:
             maxfs = fs
         print ("confusion_matrix")
         print (sk.metrics.confusion_matrix(y_true, y_pred))
+        print('True Score is : ',str(get_truScore(sk.metrics.confusion_matrix(y_true, y_pred))))
         sys.stdout.flush()
         nmodname = modelname+str(epoch+1)
         saver.save(sess, nmodname)
@@ -262,6 +264,82 @@ Global Maximum is :   0.965517241379
 avg fsc is :   0.927203065134
 
 
+'''
 
 '''
+Using TensorFlow backend.
+2018-01-02 18:07:39.636403: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+2018-01-02 18:07:39.636463: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+(3960, 3) (3960,)
+2640 18
+Start Learning...
+epoch : 0	train_loss : 1.250, train_acc: 0.950 
+Precision 1.0 , Recall 0.8 , f1_score 0.888888888889
+confusion_matrix
+[[1305    0]
+ [   3   12]]
+True Score is :  0.8
+epoch : 1	train_loss : 1.155, train_acc: 0.967 
+Precision 1.0 , Recall 0.8 , f1_score 0.888888888889
+confusion_matrix
+[[1305    0]
+ [   3   12]]
+True Score is :  0.8
+epoch : 2	train_loss : 1.071, train_acc: 0.968 
+Precision 1.0 , Recall 0.933333333333 , f1_score 0.965517241379
+confusion_matrix
+[[1305    0]
+ [   1   14]]
+True Score is :  0.933333333333
+epoch : 3	train_loss : 1.027, train_acc: 0.978 
+Precision 1.0 , Recall 0.933333333333 , f1_score 0.965517241379
+confusion_matrix
+[[1305    0]
+ [   1   14]]
+True Score is :  0.933333333333
+epoch : 4	train_loss : 1.006, train_acc: 0.978 
+Precision 1.0 , Recall 0.933333333333 , f1_score 0.965517241379
+confusion_matrix
+[[1305    0]
+ [   1   14]]
+True Score is :  0.933333333333
+epoch : 5	train_loss : 0.994, train_acc: 0.978 
+Precision 1.0 , Recall 0.933333333333 , f1_score 0.965517241379
+confusion_matrix
+[[1305    0]
+ [   1   14]]
+True Score is :  0.933333333333
+epoch : 6	train_loss : 0.986, train_acc: 0.978 
+Precision 1.0 , Recall 0.933333333333 , f1_score 0.965517241379
+confusion_matrix
+[[1305    0]
+ [   1   14]]
+True Score is :  0.933333333333
+epoch : 7	train_loss : 0.981, train_acc: 0.978 
+Precision 1.0 , Recall 0.933333333333 , f1_score 0.965517241379
+confusion_matrix
+[[1305    0]
+ [   1   14]]
+True Score is :  0.933333333333
+epoch : 8	train_loss : 0.978, train_acc: 0.978 
+Precision 1.0 , Recall 0.933333333333 , f1_score 0.965517241379
+confusion_matrix
+[[1305    0]
+ [   1   14]]
+True Score is :  0.933333333333
+epoch : 9	train_loss : 0.976, train_acc: 0.978 
+Precision 1.0 , Recall 0.933333333333 , f1_score 0.965517241379
+confusion_matrix
+[[1305    0]
+ [   1   14]]
+True Score is :  0.933333333333
+Global Maximum is :   0.965517241379
+avg fsc is :   0.950191570881
+
+'''
+
+
+
+
+
 

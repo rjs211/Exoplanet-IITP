@@ -30,7 +30,7 @@ svmData = np.load('feats/Det_clip_scale_fft.npy')
 
 data = np.load('feats/Det_clip_scale.npy')
 label = np.load('feats/label0.npy')
-print(label[:50])
+#print(label[:50])
 #with open('feats/trainTestInd.pkl', 'rb') as handle:
 #    ind = pickle.load(handle)
 
@@ -126,24 +126,21 @@ with tf.Session() as sess:
     print (sk.metrics.confusion_matrix(y_true, y_pred))
 
 
-    
-    '''
-    Using TensorFlow backend.
-2018-01-01 15:55:51.038063: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
-2018-01-01 15:55:51.038107: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
-(3960, 3197) (3960, 1598)
-(3960, 3197, 1) (3960, 1598)
-The ordering of svm and ANN are Equal
- precision : 0.9642857142857143 , recall = 0.8181818181818182 , fscore :   0.885245901639
-[[3926    1]
- [   6   27]]
-Precision 1.0 , Recall 0.787878787879 , f1_score 0.881355932203
-confusion_matrix
-[[3927    0]
- [   7   26]]
+'''
 
-    
-    '''
+Using TensorFlow backend.
+2018-01-03 00:28:38.886260: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+2018-01-03 00:28:38.886312: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+(2000, 3197) (2000, 1598)
+(2000, 3197, 1) (2000, 1598)
+SVMOUT: Pos: 6 Neg: 1994
+[[1994    6]
+ [   0    0]]
+ANNout: Pos: 7 Neg: 1993
+[[1993    7]
+ [   0    0]]
+
+'''
 
 
 

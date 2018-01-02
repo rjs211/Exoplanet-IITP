@@ -3,6 +3,7 @@ import pickle
 import sklearn as sk
 import getdata
 from getdata import getxy
+from Trusc import get_truScore
 import sys
 
 
@@ -146,7 +147,8 @@ with tf.Session() as sess:
         if fs > maxfs:
             maxfs = fs
         print ("confusion_matrix")
-        print (sk.metrics.confusion_matrix(y_true, y_pred))
+        print (sk.metrics.confusion_matrix(y_true, y_pred))   
+        print('True Score is : ',str(get_truScore(sk.metrics.confusion_matrix(y_true, y_pred))))  #just added
         sys.stdout.flush()
         nmodname = modelname+str(epoch+1)
         saver.save(sess, nmodname)

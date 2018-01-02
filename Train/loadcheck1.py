@@ -3,6 +3,7 @@ import pickle
 import sklearn as sk
 import getdata
 from getdata import getxy
+from Trusc import get_truScore
 from sklearn.metrics import precision_recall_fscore_support
 
 
@@ -66,6 +67,7 @@ pre,rec,fsc,_ = precision_recall_fscore_support(svmytest, svmy_pred, average = '
 print(' precision : {} , recall = {} , fscore :   '.format(pre,rec,fsc) ,end = '')
 print(str(fsc))
 print(sk.metrics.confusion_matrix(svmytest, svmy_pred))
+print('True Score For SVM : ',str(get_truScore(sk.metrics.confusion_matrix(svmytest, svmy_pred))))
 
 
 
@@ -116,7 +118,9 @@ with tf.Session() as sess:
     fs = sk.metrics.f1_score(y_true, y_pred)
     print ("f1_score", fs )
     print ("confusion_matrix")
+    
     print (sk.metrics.confusion_matrix(y_true, y_pred))
+    print('True Score For ANN is : ',str(get_truScore(sk.metrics.confusion_matrix(y_true, y_pred))))
 
 
     
@@ -138,7 +142,25 @@ confusion_matrix
     
     '''
 
+'''
+2018-01-02 18:08:59.917815: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+2018-01-02 18:08:59.917871: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+(3960, 3197) (3960, 1598)
+(3960, 3197, 1) (3960, 1598)
+The ordering of svm and ANN are Equal
+ precision : 0.9642857142857143 , recall = 0.8181818181818182 , fscore :   0.885245901639
+[[3926    1]
+ [   6   27]]
+True Score For SVM :  0.817927170868
+Precision 1.0 , Recall 0.787878787879 , f1_score 0.881355932203
+confusion_matrix
+[[3927    0]
+ [   7   26]]
+True Score For ANN is :  0.787878787879
 
+
+
+'''
 
 
 
