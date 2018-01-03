@@ -24,11 +24,11 @@ from tensorflow import layers as lay
 
 
 
-data = np.load('feats/Det_clip_scale.npy')
-label = np.load('feats/label0.npy')
+data = np.load('feats/Det_clip_scale.npy')          # input is detrended 
+label = np.load('feats/label0.npy')                 # labels 
 
 print(data.shape)
-with open('feats/trainTestInd.pkl', 'rb') as handle:
+with open('feats/trainTestInd.pkl', 'rb') as handle:     # loading indices
     ind = pickle.load(handle)
 fxtr , fytr, Findtr = getxy(data, label, ind[0], ind[2], 40)
 fxtest, fytest , Findtest =  getxy(data, label, ind[1], ind[3], 1)
@@ -39,14 +39,14 @@ fxtest, fytest , Findtest =  getxy(data, label, ind[1], ind[3], 1)
 
 print (fxtr.shape, fxtest.shape)
 
-fxtr = np.reshape(fxtr, (fxtr.shape[0],fxtr.shape[1],1) )
+fxtr = np.reshape(fxtr, (fxtr.shape[0],fxtr.shape[1],1) )  #reshaping as a sequence
 fxtest = np.reshape(fxtest, (fxtest.shape[0],fxtest.shape[1],1) )
 print (fxtr.shape, fxtest.shape)
 
 
 
 
-seqlen = fxtr.shape[1]
+seqlen = fxtr.shape[1]      # length of sequence here fixed to 3197 
 tf.reset_default_graph()
 
 batch_ph = tf.placeholder(tf.float32, [None, seqlen, 1],name = 'batch_ph')
@@ -57,35 +57,36 @@ keep_prob_ph = tf.placeholder(tf.float32,name = 'keep_prob_ph')
 hidden_size = 10
 hidden_size2 = 20
 print(batch_ph.get_shape())
-output1 ,dum = rnn(BasicRNNCell(hidden_size) , inputs = batch_ph , dtype = tf.float32) #  tf.contrib.rnn.LSTMCell
+output1 ,dum = rnn(BasicRNNCell(hidden_size) , inputs = batch_ph , dtype = tf.float32) # basic rnn
+#  tf.contrib.rnn.LSTMCell
 #output2 ,_ = rnn(TFLCell(hidden_size2 ,feature_size = 10, frequency_skip = 100) , inputs = tf.transpose(output1 , perm=[1, 0, 2]) , dtype = tf.float32)
 
 #output2 = tf.transpose(output2, perm=[1, 0, 2])
 #rnnout = output2[:, -1, :]
 print(output1.get_shape(),dum.get_shape())
 
-outputConv = lay.conv1d(output1,filters = 4,kernel_size = 50,strides = 20, padding = 'same', activation = tf.nn.relu)
+outputConv = lay.conv1d(output1,filters = 4,kernel_size = 50,strides = 20, padding = 'same', activation = tf.nn.relu)  # first convoltion layer 
 
 print(outputConv.get_shape())
 
-outputConv2 = lay.conv1d(outputConv,filters = 2,kernel_size = 20,strides = 5, padding = 'valid', activation = tf.nn.relu)
+outputConv2 = lay.conv1d(outputConv,filters = 2,kernel_size = 20,strides = 5, padding = 'valid', activation = tf.nn.relu)   # second convolution 
 
 print('Conv2:  ',outputConv2.get_shape())
-outflat = tf.contrib.layers.flatten(outputConv2)
+outflat = tf.contrib.layers.flatten(outputConv2)    #  flattening so that it is converted from 2d to 1d tensor
 
-dense1 = tf.layers.dense(inputs=outflat, units=10)
-keep_prob = 0.5
-drop = tf.nn.dropout(dense1 , keep_prob_ph)
+dense1 = tf.layers.dense(inputs=outflat, units=10)   #fully Connected Layer
+keep_prob = 0.5   # Dropout probability of a link staying
+drop = tf.nn.dropout(dense1 , keep_prob_ph)   #dropout layer that controls the links
 
-dense2 = tf.layers.dense(inputs=drop, units=1)
-y_hat = tf.squeeze(dense2 , name = 'y_hat')
-y_p = tf.round(tf.sigmoid(y_hat), name = 'y_p')
-yh2 = tf.sigmoid(y_hat, name = 'yh2')
+dense2 = tf.layers.dense(inputs=drop, units=1)  #output layer
+y_hat = tf.squeeze(dense2 , name = 'y_hat')    # similar to flatten  eliminates the 1 dimension in shape
+y_p = tf.round(tf.sigmoid(y_hat), name = 'y_p')   #sigmoid activation and roundung
+yh2 = tf.sigmoid(y_hat, name = 'yh2')    #sigmoid avtivation
 
-accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.round(yh2), target_ph), tf.float32), name = 'accuracy')
+accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.round(yh2), target_ph), tf.float32), name = 'accuracy')    # accuracy ie how much percent are equal labels
 
-loss = tf.reduce_mean(tf.nn.weighted_cross_entropy_with_logits(logits=tf.sigmoid(y_hat), targets=target_ph, pos_weight = 5))
-optimizer = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss)
+loss = tf.reduce_mean(tf.nn.weighted_cross_entropy_with_logits(logits=tf.sigmoid(y_hat), targets=target_ph, pos_weight = 5))   # weighted loss function
+optimizer = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss)    # adam optimizer with learning rate 0.001
 
 
 
@@ -102,8 +103,8 @@ maxfs = 0.0
 #Fxtr , Fytr, Findtr = getxy(data, label, ind[0], ind[2], 10)
 #Fxtest, Fytest , Findtest =  getxy(data, label, ind[1], ind[3], 1)
 
-saver = tf.train.Saver(max_to_keep=100)
-modelname = 'Model/RCNN/ANN_model'
+saver = tf.train.Saver(max_to_keep=100)   # maximum models to be saved
+modelname = 'Model/RCNN/ANN_model' 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     print('Start Learning...')
@@ -117,27 +118,30 @@ with tf.Session() as sess:
         print("epoch : {}\t".format(epoch),end ="")
         
         num_batches = int(fxtr.shape[0] / batch_size)
-        for b in range(num_batches):
+        for b in range(num_batches):       # splitting into batches  
             x_batch = fxtr[ b*batch_size: (b+1)*batch_size ]
             y_batch = fytr[ b*batch_size: (b+1)*batch_size ]
             #x_batch = np.reshape(x_batch,(x_batch.shape[0],x_batch.shape[1],1) )
+            #training
+            
             loss_tr , acc , _ = sess.run([loss,accuracy,optimizer], feed_dict = {
                                                                                  batch_ph: x_batch,
                                                                                  target_ph: y_batch,
                                                                                  keep_prob_ph : keep_prob})
-            acc_train +=acc
+            acc_train +=acc  # avrage accuracy
             loss_train = loss_tr * delta + loss_train * (1 - delta)
-        acc_train /= num_batches
+        acc_train /= num_batches  
         
         
         #print('Testing:')
-        
+        #Validation
         val_acc, y_pred , y_h = sess.run([accuracy, y_p,yh2], feed_dict = {
                                                                              batch_ph: fxtest,
                                                                              target_ph: fytest,
-                                                                             keep_prob_ph :1.0})
+                                                                             keep_prob_ph :1.0})        
         y_true = fytest
         #print(y_h[:25],'\n pred\n', y_pred[:25])
+        #printing all the scires
         print("train_loss : {:.3f}, train_acc: {:.3f} ".format(loss_train, acc_train))
         print ("Precision", sk.metrics.precision_score(y_true, y_pred), end =" , ")
         print ("Recall", sk.metrics.recall_score(y_true, y_pred), end =" , ")
@@ -150,7 +154,7 @@ with tf.Session() as sess:
         print (sk.metrics.confusion_matrix(y_true, y_pred))   
         print('True Score is : ',str(get_truScore(sk.metrics.confusion_matrix(y_true, y_pred))))  #just added
         sys.stdout.flush()
-        nmodname = modelname+str(epoch+1)
+        nmodname = modelname+str(epoch+1)     # saving model for each epoch
         saver.save(sess, nmodname)
         
     #    new_tuples = []

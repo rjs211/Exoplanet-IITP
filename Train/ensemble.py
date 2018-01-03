@@ -23,18 +23,21 @@ from tensorflow import layers as lay
 
 
 
-d1 = np.load('feats/Ens_SVM_Pred.npy')
-d2 = np.load('feats/Ens_ANN_yhat.npy')
-d3 = np.load('feats/Ens_ANN_yp.npy')
+d1 = np.load('feats/Ens_SVM_Pred.npy')  # the binary svm predictions
+d2 = np.load('feats/Ens_ANN_yhat.npy')   # the probability of a sample being true
+d3 = np.load('feats/Ens_ANN_yp.npy')  # the binary ANN predition
 ns = d1.shape
-d1 = np.reshape(d1,(ns[0],1))
+d1 = np.reshape(d1,(ns[0],1))   # reshape for Concatenation
 d2 = np.reshape(d2,(ns[0],1))
 d3 = np.reshape(d3,(ns[0],1))
 
-data = np.concatenate((d1,d2,d3) ,axis = 1)
-label = np.load('feats/Ens_Label.npy')
+data = np.concatenate((d1,d2,d3) ,axis = 1)  #Cocatenation
+label = np.load('feats/Ens_Label.npy')  # labels
 
-print(data.shape,label.shape)
+print(data.shape,label.shape)  
+
+
+# Training and validation split
 nind = data.shape[0]
 ntest = nind//3
 
@@ -53,22 +56,22 @@ fytest = label[indtest]
 
 
 
-seqlen = fxtr.shape[1]
-batch_ph = tf.placeholder(tf.float32, [None,seqlen ],name = 'Ens_batch_ph')
+seqlen = fxtr.shape[1]                 # defining placeholders for ensemble model
+batch_ph = tf.placeholder(tf.float32, [None,seqlen ],name = 'Ens_batch_ph')   
 target_ph = tf.placeholder(tf.float32, [None], name = 'Ens_target_ph')
 #keep_prob_ph = tf.placeholder(tf.float32,name = 'keep_prob_ph')
 
-dense1 = tf.layers.dense(inputs=batch_ph, units=3)
-dense2 = tf.layers.dense(inputs=dense1, units=2)
-denseout = tf.layers.dense(inputs=dense2, units=1)
+dense1 = tf.layers.dense(inputs=batch_ph, units=3)  #first hidden layer
+dense2 = tf.layers.dense(inputs=dense1, units=2)    # seond hidden layer
+denseout = tf.layers.dense(inputs=dense2, units=1)   #output layer
 
-y_hat = tf.squeeze(denseout , name = 'Ens_y_hat')
+y_hat = tf.squeeze(denseout , name = 'Ens_y_hat')     
 y_p = tf.round(tf.sigmoid(y_hat), name = 'Ens_y_p')
 yh2 = tf.sigmoid(y_hat, name = 'Ens_yh2')
 
-accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.round(yh2), target_ph), tf.float32), name = 'Ens_accuracy')
+accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.round(yh2), target_ph), tf.float32), name = 'Ens_accuracy')  
 
-loss = tf.reduce_mean(tf.nn.weighted_cross_entropy_with_logits(logits=tf.sigmoid(y_hat), targets=target_ph, pos_weight = 5))
+loss = tf.reduce_mean(tf.nn.weighted_cross_entropy_with_logits(logits=tf.sigmoid(y_hat), targets=target_ph, pos_weight = 5)) #weighted loss
 optimizer = tf.train.AdamOptimizer(learning_rate=1e-3).minimize(loss)
 
 batch_size = 32
@@ -96,16 +99,16 @@ with tf.Session() as sess:
         print("epoch : {}\t".format(epoch),end ="")
         
         num_batches = int(fxtr.shape[0] / batch_size)
-        for b in range(num_batches):
+        for b in range(num_batches):        #batch splitting
             x_batch = fxtr[ b*batch_size: (b+1)*batch_size ]
             y_batch = fytr[ b*batch_size: (b+1)*batch_size ]
             #x_batch = np.reshape(x_batch,(x_batch.shape[0],x_batch.shape[1],1) )
-            loss_tr , acc , _ = sess.run([loss,accuracy,optimizer], feed_dict = {
+            loss_tr , acc , _ = sess.run([loss,accuracy,optimizer], feed_dict = {    
                                                                                  batch_ph: x_batch,
                                                                                  target_ph: y_batch})
             acc_train +=acc
             loss_train = loss_tr * delta + loss_train * (1 - delta)
-        acc_train /= num_batches
+        acc_train /= num_batches  #average accuracy
         
         
         #print('Testing:')
@@ -115,6 +118,7 @@ with tf.Session() as sess:
                                                                              target_ph: fytest})
         y_true = fytest
         #print(y_h[:25],'\n pred\n', y_pred[:25])
+        #printing the metrics
         print("train_loss : {:.3f}, train_acc: {:.3f} ".format(loss_train, acc_train))
         print ("Precision", sk.metrics.precision_score(y_true, y_pred), end =" , ")
         print ("Recall", sk.metrics.recall_score(y_true, y_pred), end =" , ")

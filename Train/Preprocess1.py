@@ -18,14 +18,14 @@ def modClipper(sam , red = 0.02 , dist = 4):   # function to perform clipping of
     
     seqLen = sam.shape[-1]
     mod = int(seqLen*red)
-    indrange = range(2*dist + 1)
-    indrange = np.asarray(indrange , dtype = np.int32)
-    for i in sam:
-    	indSort = np.argsort(i) [-1*mod:]
-    	l1 = []
+    indrange = range(2*dist + 1)            # determiing wwindow size
+    indrange = np.asarray(indrange , dtype = np.int32)      #change to numpy format
+    for i in sam:    
+    	indSort = np.argsort(i) [-1*mod:]   # sort the indices based on the values
+    	l1 = []         
     	lind1 = []
-    	for j in indSort:
-    	    repl = 0
+    	for j in indSort:        #replacing the maximum by the averrage of the winndow centered at that point.
+    	    repl = 0       
     	    cnt = 0
     	    window = indrange + (j-dist)
     	    window = [ p for p in window if p >= 0 and p<seqLen and p != j]
@@ -40,10 +40,10 @@ def modClipper(sam , red = 0.02 , dist = 4):   # function to perform clipping of
     return sam
 
 
-x = range(data.shape[-1])   
+x = range(data.shape[-1])    #fixing values for applying Fourier Trasformation
 y = data[0]
 n = len(y)
-t = float(1/float(n))
+t = float(1/float(n))       
 k = np.arange(n)
 frq = k
 nn = int(n/2)
@@ -54,28 +54,29 @@ Y = abs(Y[range(nn)])
 
 
 lidet = []
-for i in data:
+for i in data:                       # applying median filter
     #print(cnt)
     #cnt+=1
-    y = medfilt(i, 51)
-    z = i-y
-    lidet.append(z)
+    y = medfilt(i, 51)               #  smoothed curve
+    z = i-y                          #  removing the tred  by subraction
+    lidet.append(z)                  # appending the dertrended daa 
 
 
 print('Detrend Done')    
 lidet = np.asarray(lidet,dtype = np.float32)
-liclip = modClipper(lidet)
+liclip = modClipper(lidet)             
 print('modclip done')
-liclipnorm = preprocessing.normalize(liclip,axis = 1)
+liclipnorm = preprocessing.normalize(liclip,axis = 1)  # normalizing each samp,e
 print('normalize done')
-liclipscale = preprocessing.scale(liclip,axis = 1)
+liclipscale = preprocessing.scale(liclip,axis = 1)  #  scaling each sample
 print('scalinf done')
-print('Shape of clipnorm' , liclipnorm.shape)
-np.save('feats/Det_clip.npy', liclip)
-np.save('feats/Det_clip_norm.npy', liclipnorm)
+print('Shape of clipnorm' , liclipnorm.shape)    
+np.save('feats/Det_clip.npy', liclip)   # saving clippped data
+np.save('feats/Det_clip_norm.npy', liclipnorm)  # saving clipped normed data 
 np.save('feats/Det_clip_scale.npy', liclipscale)
 lifft = []
-print('saving Phase1 done')
+print('saving Phase1 done')  
+# applying fft to scaled data 
 for z in liclipscale:
     Y = np.fft.fft(z) / n
     Y = abs(Y[range(nn)])
@@ -88,7 +89,7 @@ print('fft done')
 print('Shape of clipscalefft' , lifft.shape)
 
 np.save('feats/Det_clip_scale_fft.npy', lifft)
-
+# applying fft to normed data
 lifft = []
 for z in liclipnorm:
     Y = np.fft.fft(z) / n

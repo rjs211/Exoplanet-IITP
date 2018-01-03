@@ -20,7 +20,7 @@ from tensorflow import layers as lay
 
 #from tensorflow.python.ops import Conv1DLSTMCell
 
-
+############################### Load Data
 
 
 with open('Model/SVM/best/svmModel1.pkl','rb') as f:
@@ -35,19 +35,19 @@ with open('feats/trainTestInd.pkl', 'rb') as handle:
     ind = pickle.load(handle)
 
 #fxtr , fytr, Findtr = getxy(data, label, ind[0], ind[2], 40)
-fxtest, fytest , findtest =  getxy(data, label, ind[1]+ind[0], ind[3]+ind[2], 1,if_shuffle = False)
+fxtest, fytest , findtest =  getxy(data, label, ind[1]+ind[0], ind[3]+ind[2], 1,if_shuffle = False)   # for ANN model
 
 
-svmxtest, svmytest , svmindtest =  getxy(svmData, label, ind[1]+ind[0], ind[3]+ind[2], 1,if_shuffle = False)
+svmxtest, svmytest , svmindtest =  getxy(svmData, label, ind[1]+ind[0], ind[3]+ind[2], 1,if_shuffle = False)  # for SVM model
 
 
-print (fxtest.shape, svmxtest.shape)
+print (fxtest.shape, svmxtest.shape)  
 
 #fxtr = np.reshape(fxtr, (fxtr.shape[0],fxtr.shape[1],1) )
 fxtest = np.reshape(fxtest, (fxtest.shape[0],fxtest.shape[1],1) )
 print (fxtest.shape, svmxtest.shape)
 
-totest = np.asarray(svmindtest, dtype = np.int32 )
+totest = np.asarray(svmindtest, dtype = np.int32 )   
 totest2 = np.asarray(findtest, dtype = np.int32 )
 
 if np.array_equal(totest,totest2) :
@@ -59,9 +59,9 @@ else:
 
 
 
-svmy_pred = clf.predict(svmxtest)
-np.save('feats/Ens_SVM_Pred.npy', svmy_pred)
-pre,rec,fsc,_ = precision_recall_fscore_support(svmytest, svmy_pred, average = 'binary')
+svmy_pred = clf.predict(svmxtest)   #predicting svms
+np.save('feats/Ens_SVM_Pred.npy', svmy_pred)   #saving svms predictions to be used for ensembler
+pre,rec,fsc,_ = precision_recall_fscore_support(svmytest, svmy_pred, average = 'binary')   #  printing for training and validation data
 #,average = 'binary'
 
 print(' precision : {} , recall = {} , fscore :   '.format(pre,rec,fsc) ,end = '')
@@ -86,20 +86,20 @@ maxfs = 0.0
 
 
 modelname = 'Model/RCNN/best/rnn_2cnn_fc56'
-with tf.Session() as sess:
+with tf.Session() as sess:    # loading ANN model and predicting
     new_saver = tf.train.import_meta_graph(modelname+'.meta')
     new_saver.restore(sess, modelname)
     gph = tf.get_default_graph()
     #print([n.name for n in gph.as_graph_def().node])
     
-    y_p = gph.get_tensor_by_name("y_p:0")
+    y_p = gph.get_tensor_by_name("y_p:0")   # loading metrics and placehlders from model 
     yh2 = gph.get_tensor_by_name("yh2:0")
     accuracy = gph.get_tensor_by_name("accuracy:0")
     batch_ph = gph.get_tensor_by_name("batch_ph:0")
     target_ph = gph.get_tensor_by_name("target_ph:0")
     keep_prob_ph = gph.get_tensor_by_name("keep_prob_ph:0") 
     
-    
+    # predicting
     
     val_acc, y_pred , y_h = sess.run([accuracy, y_p,yh2], feed_dict = {
                                                                        batch_ph: fxtest,
@@ -109,14 +109,14 @@ with tf.Session() as sess:
     
     
     y_true = fytest
-    np.save('feats/Ens_ANN_yp.npy',y_pred)
-    np.save('feats/Ens_ANN_yhat.npy',y_h)
+    np.save('feats/Ens_ANN_yp.npy',y_pred)    #saving Features to be used for ensembler
+    np.save('feats/Ens_ANN_yhat.npy',y_h)     
     #print(y_h[:25],'\n pred\n', y_pred[:25])
     #print("train_loss : {:.3f}, train_acc: {:.3f} ".format(loss_train, acc_train))
-    print ("Precision", sk.metrics.precision_score(y_true, y_pred), end =" , ")
+    print ("Precision", sk.metrics.precision_score(y_true, y_pred), end =" , ")    # printing various scores
     print ("Recall", sk.metrics.recall_score(y_true, y_pred), end =" , ")
-    fs = sk.metrics.f1_score(y_true, y_pred)
-    print ("f1_score", fs )
+    fs = sk.metrics.f1_score(y_true, y_pred)        
+    print ("f1_score", fs )   
     print ("confusion_matrix")
     
     print (sk.metrics.confusion_matrix(y_true, y_pred))
